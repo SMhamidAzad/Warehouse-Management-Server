@@ -15,12 +15,24 @@ app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.a6oi5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-  const collection = client.db("tiles").collection("product");
-  console.log('db connected');
-  // perform actions on the collection object
-  client.close();
-});
+
+async function run(){
+  try{
+     await client.connect();
+     const productCollection = client.db('tilesWarehouse').collection('product')
+
+     app.get('/product', async(req, res)=>{
+       const query = {};
+       const cursor = productCollection.find(query);
+       const allProduct = await cursor.toArray();
+       res.send(allProduct)
+     })
+  }
+  finally{
+
+  }
+}
+run().catch(console.dir)
 
 // root api
 app.get('/',(req, res)=>{
