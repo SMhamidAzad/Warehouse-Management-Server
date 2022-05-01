@@ -36,7 +36,7 @@ async function run(){
       const product = await productCollection.findOne(query);
       res.send(product);
 
-    // delivered product
+    // delivered product and update quantity
     app.put('/product/:id', async(req, res)=>{
       const id = req.params.id;
       const data = req.body;
@@ -52,6 +52,8 @@ async function run(){
       res.send(result);
 
     })
+
+   
      
   });
   }
