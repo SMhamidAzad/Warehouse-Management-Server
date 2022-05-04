@@ -16,67 +16,77 @@ app.use(express.json())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.a6oi5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-async function run(){
-  try{
-     await client.connect();
-     const productCollection = client.db('tilesWarehouse').collection('product')
+async function run() {
+  try {
+    await client.connect();
+    const productCollection = client.db('tilesWarehouse').collection('product')
 
     //  api for all product 
-     app.get('/product', async(req, res)=>{
-       const query = {};
-       const cursor = productCollection.find(query);
-       const allProduct = await cursor.toArray();
-       res.send(allProduct)
-     })
+    // app.get('/product', async (req, res) => {
+     
+    // })
+    app.get('/product', async (req, res) => {
+      const email = req.query.email;
+      if(email){
+
+        const query = { email: email };
+        const cursor = productCollection.find(query);
+        const result = await cursor.toArray();
+        res.send(result);
+      }
+      else{
+        const query = {};
+        const cursor = productCollection.find(query);
+        const allProduct = await cursor.toArray();
+        res.send(allProduct)
+      }
+    })
 
     //  api for single product 
-     app.get('/product/:id', async (req, res) => {
+    app.get('/product/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const product = await productCollection.findOne(query);
       res.send(product);
 
-    // delivered product and update quantity
-    app.put('/product/:id', async(req, res)=>{
-      const id = req.params.id;
-      const data = req.body;
-      console.log(data.newQuantity);
-      const filter = {_id: ObjectId(id)};
-      const options = { upsert: true };
-      const updatedDoc = {
+      // delivered product and update quantity
+      app.put('/product/:id', async (req, res) => {
+        const id = req.params.id;
+        const data = req.body;
+        console.log(data.newQuantity);
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updatedDoc = {
           $set: {
-             quantity: data.newQuantity
+            quantity: data.newQuantity
           }
-      };
-      const result = await productCollection.updateOne(filter, updatedDoc, options);
-      res.send(result);
-    })
+        };
+        const result = await productCollection.updateOne(filter, updatedDoc, options);
+        res.send(result);
+      })
 
-    // added new inventory 
-    app.post('/product', async(req, res) =>{
+      // added new inventory 
+      app.post('/product', async (req, res) => {
 
-      const newInventory = req.body;
-      console.log(newInventory);
-      console.log("Successfully adding new inventory", newInventory);
-      const result = await productCollection.insertOne(newInventory);
-      res.send(result)
-  });
-
-   
-     
-  });
+        const newInventory = req.body;
+        console.log(newInventory);
+        console.log("Successfully adding new inventory", newInventory);
+        const result = await productCollection.insertOne(newInventory);
+        res.send(result)
+      });
+    });
   }
-  finally{
+  finally {
 
   }
 }
 run().catch(console.dir)
 
 // root api
-app.get('/',(req, res)=>{
-    res.send('tiles warehouse is running');
+app.get('/', (req, res) => {
+  res.send('tiles warehouse is running');
 })
 
-app.listen(port, ()=>{
-    console.log('Listening to port ',port);
+app.listen(port, () => {
+  console.log('Listening to port ', port);
 })
