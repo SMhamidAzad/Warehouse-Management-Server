@@ -6,11 +6,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 
-
 // middleware 
 app.use(cors());
 app.use(express.json())
-
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.a6oi5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -21,10 +19,6 @@ async function run() {
     await client.connect();
     const productCollection = client.db('tilesWarehouse').collection('product')
 
-    //  api for all product 
-    // app.get('/product', async (req, res) => {
-     
-    // })
     app.get('/product', async (req, res) => {
       const email = req.query.email;
       if(email){
@@ -48,12 +42,12 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const product = await productCollection.findOne(query);
       res.send(product);
+    })
 
       // delivered product and update quantity
       app.put('/product/:id', async (req, res) => {
         const id = req.params.id;
         const data = req.body;
-        console.log(data.newQuantity);
         const filter = { _id: ObjectId(id) };
         const options = { upsert: true };
         const updatedDoc = {
@@ -67,14 +61,19 @@ async function run() {
 
       // added new inventory 
       app.post('/product', async (req, res) => {
-
         const newInventory = req.body;
-        console.log(newInventory);
         console.log("Successfully adding new inventory", newInventory);
         const result = await productCollection.insertOne(newInventory);
         res.send(result)
       });
-    });
+
+      // delete api 
+      app.delete('/product/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await productCollection.deleteOne(query);
+        res.send(result);
+    });  
   }
   finally {
 
@@ -84,7 +83,7 @@ run().catch(console.dir)
 
 // root api
 app.get('/', (req, res) => {
-  res.send('tiles warehouse is running');
+  res.send('door warehouse is running');
 })
 
 app.listen(port, () => {
